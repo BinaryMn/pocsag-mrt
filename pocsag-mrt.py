@@ -21,6 +21,7 @@ from gnuradio import extras
 from gnuradio import eng_notation
 from gnuradio.eng_option import eng_option
 import sys
+import os
 import time
 import argparse
 import osmosdr
@@ -125,6 +126,8 @@ class main_window(QtGui.QMainWindow):
 		self.read_channels(args.channels_file)
 
 	def init_sink(self):
+		self.logfiles = {}
+		self.logfiles['unknown'] = open(os.path.join(args.output_dir, 'unknown-frequency.log'), 'w+')
 		self.topblock.stop()
 		self.topblock.wait()
 		self.enable_selector_buttons(False)
@@ -215,8 +218,19 @@ class main_window(QtGui.QMainWindow):
 	def push_text(self, text, color = QtCore.Qt.black):
 		self.console.setTextColor(color)
 		self.console.append(text)
+	
+	def log_pagermsg(self, txt):
+		log_time = '%s: ' % time.strftime('%F %T')
+		eom = ' (eom)' if txt['endofmsg'] else txt['endofmsg']
+		pagertext = 'pager: %d (%d), TXT%s: %s\n' % (txt['addr'], txt['fun'], eom, txt['text'])
+		ch = txt['channel']
+		if ch:
+			self.logfiles[ch].write(log_time + pagertext)
+		else:
+			self.logfiles['unknown'].write(log_time + pagertext)
 
 	def push_pagermsg(self, txt):
+		self.log_pagermsg(txt)
 		ch = "N/A" if txt["channel"] == None else txt["channel"]
 		pagertext = "Pager message -- Channel %s, From pager %d (%d), TXT: %s" % (ch, txt["addr"], txt["fun"], txt["text"])
 		if txt["endofmsg"]:
@@ -260,6 +274,7 @@ class main_window(QtGui.QMainWindow):
 		self.addfreq_edit.clearFocus()
 		self.addfreq_edit.clear()
 		freq_txt = "%.6fMHz" % (freq / 1e6)
+		self.logfiles[freq_txt] = open(os.path.join(args.output_dir, freq_txt + '.log'), 'a')
 		if freq_txt in self.freqs:
 			self.push_text("%s is already monitored!" % freq_txt)
 			return
@@ -336,6 +351,7 @@ class main_window(QtGui.QMainWindow):
 	def remove_freq(self, freq):
 		if freq == None or freq not in self.freqs: return
 		self.push_text("Removing %s" % freq)
+		self.logfiles[freq].close()
 		self.topblock.stop()
 		self.topblock.wait()
 		if self.selected_freq == freq: self.disconnect_sink(freq)
@@ -423,6 +439,9 @@ class my_top_block(gr.top_block):
 		if args.output_file:
 			self.file_sink = gr.file_sink(gr.sizeof_gr_complex, args.output_file)
 			self.connect(self.source, self.file_sink)
+		if args.output_dir:
+			if not os.path.exists(args.output_dir):
+				os.makedirs(args.output_dir)
 
 if __name__ == "__main__":
 	print BANNER
@@ -433,6 +452,8 @@ if __name__ == "__main__":
 		const='true', default='false', help='when reading from a file, loop the samples')
 	parser.add_argument('-o', '--output', dest='output_file', action='store',
 		help='save the samples to a file')
+	parser.add_argument('-O', '--output-dir-log', dest='output_dir', action='store',
+		help='save the decoded messages in a log file, one for each frequency')
 	parser.add_argument('-c', '--freqcorr', dest='freqcorr', action='store',
 		type=eng_notation.str_to_num, default=INI_FREQ_CORR, help='set the frequency correction (ppm)')
 	parser.add_argument('-f', '--freq', dest='centerfreq', action='store',
