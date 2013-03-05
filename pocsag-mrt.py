@@ -126,8 +126,12 @@ class main_window(QtGui.QMainWindow):
 		self.read_channels(args.channels_file)
 
 	def init_sink(self):
-		self.logfiles = {}
-		self.logfiles['unknown'] = open(os.path.join(args.output_dir, 'unknown-frequency.log'), 'w+')
+		if args.output_dir:
+			self.logfiles = {}
+			logdirpath = os.path.join(args.output_dir, 'unknown-frequency.log')
+			self.logfiles['unknown'] = open(logdirpath, 'w+')
+			self.push_text('All messages will be saved in "%s". One file for each frequency.'
+					% args.output_dir)
 		self.topblock.stop()
 		self.topblock.wait()
 		self.enable_selector_buttons(False)
@@ -220,8 +224,9 @@ class main_window(QtGui.QMainWindow):
 		self.console.append(text)
 	
 	def log_pagermsg(self, txt):
+		if not args.output_dir: return False
 		log_time = '%s: ' % time.strftime('%F %T')
-		eom = ' (eom)' if txt['endofmsg'] else txt['endofmsg']
+		eom = ' (eom)' if txt['endofmsg'] else ''
 		pagertext = 'pager: %d (%d), TXT%s: %s\n' % (txt['addr'], txt['fun'], eom, txt['text'])
 		ch = txt['channel']
 		if ch:
@@ -274,7 +279,8 @@ class main_window(QtGui.QMainWindow):
 		self.addfreq_edit.clearFocus()
 		self.addfreq_edit.clear()
 		freq_txt = "%.6fMHz" % (freq / 1e6)
-		self.logfiles[freq_txt] = open(os.path.join(args.output_dir, freq_txt + '.log'), 'a')
+		if args.output_dir:
+			self.logfiles[freq_txt] = open(os.path.join(args.output_dir, freq_txt + '.log'), 'a')
 		if freq_txt in self.freqs:
 			self.push_text("%s is already monitored!" % freq_txt)
 			return
@@ -351,7 +357,8 @@ class main_window(QtGui.QMainWindow):
 	def remove_freq(self, freq):
 		if freq == None or freq not in self.freqs: return
 		self.push_text("Removing %s" % freq)
-		self.logfiles[freq].close()
+		if args.output_dir:
+			self.logfiles[freq].close()
 		self.topblock.stop()
 		self.topblock.wait()
 		if self.selected_freq == freq: self.disconnect_sink(freq)

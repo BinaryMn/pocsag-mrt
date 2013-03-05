@@ -45,7 +45,8 @@ notation accepted), a list of channel frequencies to monitor.
 
 GNURadio
 ==========
-The application was tested with gnuradio 3.6.2 but a lower version might work.
+The application was tested with gnuradio 3.6.2 and 3.6.3 but a lower version
+might work.
 It also (mainly) depends on:
 - GrExtras: https://github.com/guruofquality/grextras/wiki
 - GrOsmoSDR: http://sdr.osmocom.org/trac/wiki/GrOsmoSDR
@@ -70,29 +71,32 @@ Usage
 =========
 
 	POCSAG Multichannel Realtime Decoder -- iZsh (izsh at fail0verflow.com)
-	usage: pocsag-mrt.py [-h] [-i INPUT_FILE] [-l] [-o OUTPUT_FILE] [-c FREQCORR]
-	                     [-f CENTERFREQ] [-r SAMPLERATE] [-s SYMRATE]
-	                     [-C CHANNELS_FILE]
-	
+	usage: pocsag-mrt.py [-h] [-i INPUT_FILE] [-l] [-o OUTPUT_FILE]
+			     [-O OUTPUT_DIR] [-c FREQCORR] [-f CENTERFREQ]
+			     [-r SAMPLERATE] [-s SYMRATE] [-C CHANNELS_FILE]
+
 	optional arguments:
 	  -h, --help            show this help message and exit
 	  -i INPUT_FILE, --input INPUT_FILE
-	                        read the samples from a file (default: None)
+				read the samples from a file (default: None)
 	  -l, --loop            when reading from a file, loop the samples (default:
-	                        false)
+				false)
 	  -o OUTPUT_FILE, --output OUTPUT_FILE
-	                        save the samples to a file (default: None)
+				save the samples to a file (default: None)
+	  -O OUTPUT_DIR, --output-dir-log OUTPUT_DIR
+				save the decoded messages in a log file, one for each
+				frequency (default: None)
 	  -c FREQCORR, --freqcorr FREQCORR
-	                        set the frequency correction (ppm) (default: 0.0)
+				set the frequency correction (ppm) (default: 0.0)
 	  -f CENTERFREQ, --freq CENTERFREQ
-	                        set the center frequency (default: 0.0)
+				set the center frequency (default: 0.0)
 	  -r SAMPLERATE, --samplerate SAMPLERATE
-	                        set the samplerate (default: 1000000.0)
+				set the samplerate (default: 1000000.0)
 	  -s SYMRATE, --symrate SYMRATE
-	                        set the symbol rate (default: 1200)
+				set the symbol rate (default: 1200)
 	  -C CHANNELS_FILE, --channelsfile CHANNELS_FILE
-	                        read an initial channels list from a file (default:
-	                        None)
+				read an initial channels list from a file (default:
+				None)
 
 POCSAG
 ========
